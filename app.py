@@ -7,9 +7,9 @@ import requests
 # Function to download the model file from Google Drive
 @st.cache_resource
 def download_model():
-    url = "https://drive.google.com/uc?export=download&id=1ms0G8on7sD8drXnJgyTajiATpjeykohc"  # Replace with your direct download link
+    url = "https://drive.google.com/uc?export=download&id=1A2B3C4D5E6F7G8H9I0J"  # Replace with your direct download link
     model_path = "models/model.safetensors"
-    
+
     if not os.path.exists("models"):
         os.makedirs("models")
 
@@ -28,7 +28,7 @@ def download_model():
 @st.cache_resource
 def load_model():
     model_path = download_model()
-    model = LlamaForCausalLM.from_pretrained("models", torch_dtype=torch.bfloat16)
+    model = LlamaForCausalLM.from_pretrained("models", torch_dtype=torch.float16)
     tokenizer = LlamaTokenizer.from_pretrained("models")
     return model, tokenizer
 
