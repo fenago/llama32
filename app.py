@@ -15,12 +15,16 @@ def download_model():
 
     if not os.path.exists(model_path):
         st.write("Downloading the model. This may take a while...")
-        with requests.get(url, stream=True) as r:
-            r.raise_for_status()
-            with open(model_path, 'wb') as f:
-                for chunk in r.iter_content(chunk_size=8192):
-                    f.write(chunk)
-        st.write("Model downloaded successfully!")
+        try:
+            with requests.get(url, stream=True) as r:
+                r.raise_for_status()
+                with open(model_path, 'wb') as f:
+                    for chunk in r.iter_content(chunk_size=8192):
+                        f.write(chunk)
+            st.write("Model downloaded successfully!")
+        except Exception as e:
+            st.error(f"Failed to download the model: {e}")
+            return None
     
     return model_path
 
@@ -28,11 +32,17 @@ def download_model():
 @st.cache_resource
 def load_model():
     model_path = download_model()
+    if model_path is None:
+        st.error("Model download failed. Please check the download link or try again.")
+        return None, None
+    
     model = LlamaForCausalLM.from_pretrained("models", torch_dtype=torch.float16)
     tokenizer = LlamaTokenizer.from_pretrained("models")
     return model, tokenizer
 
 model, tokenizer = load_model()
+if model is None or tokenizer is None:
+    st.stop()
 
 # Streamlit User Interface
 st.title("Llama 3.2 1B Model on Streamlit Cloud")
