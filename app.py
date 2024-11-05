@@ -1,16 +1,40 @@
 import streamlit as st
+import torch
+import os
 from transformers import LlamaForCausalLM, LlamaTokenizer
+import requests
 
-# Load the model and tokenizer
+# Function to download the model file from Google Drive
+@st.cache_resource
+def download_model():
+    url = "https://drive.google.com/uc?export=download&id=1ms0G8on7sD8drXnJgyTajiATpjeykohc"  # Replace with your direct download link
+    model_path = "models/model.safetensors"
+    
+    if not os.path.exists("models"):
+        os.makedirs("models")
+
+    if not os.path.exists(model_path):
+        st.write("Downloading the model. This may take a while...")
+        with requests.get(url, stream=True) as r:
+            r.raise_for_status()
+            with open(model_path, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
+        st.write("Model downloaded successfully!")
+    
+    return model_path
+
+# Function to load the model and tokenizer
 @st.cache_resource
 def load_model():
-    model = LlamaForCausalLM.from_pretrained("models/llama-3.2-1b")
-    tokenizer = LlamaTokenizer.from_pretrained("models/llama-3.2-1b")
+    model_path = download_model()
+    model = LlamaForCausalLM.from_pretrained("models", torch_dtype=torch.bfloat16)
+    tokenizer = LlamaTokenizer.from_pretrained("models")
     return model, tokenizer
 
 model, tokenizer = load_model()
 
-# Streamlit UI
+# Streamlit User Interface
 st.title("Llama 3.2 1B Model on Streamlit Cloud")
 prompt = st.text_area("Enter your prompt:", "")
 
